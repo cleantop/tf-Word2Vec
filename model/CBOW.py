@@ -22,7 +22,7 @@ class CBOW(object):
 
 
         with tf.device('/cpu:0'), tf.name_scope("negative-sampling"):
-            self.W_out = tf.Variable(tf.random_uniform([num_vocab, word_dimension], maxval=1.0/50,minval=-1.0/50), name="W", trainable=True)
+            self.W_out = tf.Variable(tf.random_uniform([num_vocab, word_dimension], maxval=1.0/word_dimension,minval=-1.0/word_dimension), name="W", trainable=True)
             b = tf.Variable(tf.constant(0.0, shape=[num_vocab], name="b"))
 
             self.loss = tf.nn.nce_loss(weights=self.W_out, biases=b, labels=self.input_y, inputs=self.projection, num_sampled=num_negative, num_classes=num_vocab)
