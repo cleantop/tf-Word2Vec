@@ -1,0 +1,1 @@
+The sample training corpus(Text8) can be downloaded at http://mattmahoney.net/dc/text8.zip 
