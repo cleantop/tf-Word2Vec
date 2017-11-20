@@ -12,14 +12,14 @@ class Skipgram(object):
         # Valud words
         self.input_z = tf.placeholder(tf.int32, [1])
 
-        with tf.name_scope("word-embeddings"):
+        with tf.device('/cpu:0'), tf.name_scope("word-embeddings"):
             self.W_in = tf.Variable(tf.random_uniform([num_vocab, word_dimension], maxval=1.0, minval=-1.0), name="input_embedding",
                                      trainable=True)
             self.projection = tf.nn.embedding_lookup(self.W_in, self.input_x)  # None, 2*window_size, word_dimension
             self.projection = tf.reshape(self.projection, [-1, word_dimension])
 
 
-        with tf.name_scope("negative-sampling"):
+        with tf.device('/cpu:0'), tf.name_scope("negative-sampling"):
             self.W_out = tf.Variable(tf.random_uniform([num_vocab, word_dimension], maxval=1.0/word_dimension, minval=-1.0/word_dimension), name="output_embedding",
                                      trainable=True)
             b = tf.Variable(tf.constant(0.0, shape=[num_vocab], name="b"))
