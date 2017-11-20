@@ -1,5 +1,7 @@
 import tensorflow as tf
 import collections
+import os
+import time
 import datetime
 import numpy as np
 
@@ -13,6 +15,12 @@ num_epoch = 5
 num_negative = 25
 window_size = 3
 batch_size = 100
+
+directory = "./cbow_model_log"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+model_path = directory+"/model.ckpt"
 
 data = utill.load_data("./dataset/text8")
 word_counter = collections.Counter(data)
@@ -86,6 +94,19 @@ with tf.Graph().as_default():
             grads_and_vars = optimizer.compute_gradients(cbow.loss)
             train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
+            # Summaries for loss and accuracy
+            loss_summary = tf.summary.scalar("loss", cbow.loss)
+
+            # Output directory for models and summaries
+            timestamp = str(int(time.time()))
+            out_dir = os.path.abspath(os.path.join(os.path.curdir, "cbow_runs", timestamp))
+            print("Writing to {}\n".format(out_dir))
+
+            # Train Summaries
+            train_summary_op = tf.summary.merge([loss_summary])
+            train_summary_dir = os.path.join(out_dir, "summaries", "train")
+            train_summary_writer = tf.summary.FileWriter(train_summary_dir, sess.graph)
+
             # Initialize all variables
             sess.run(tf.global_variables_initializer())
 
@@ -98,7 +119,8 @@ with tf.Graph().as_default():
                     cbow.input_y: y_batch
                 }
 
-                _, step, loss = sess.run([train_op, global_step, cbow.loss], feed_dict=feed_dict)
+                _, step, summaries, loss = sess.run([train_op, global_step, train_summary_op, cbow.loss], feed_dict=feed_dict)
+                train_summary_writer.add_summary(summaries, step)
                 return loss
 
             def valid_step():
@@ -131,3 +153,4 @@ with tf.Graph().as_default():
                 avg_loss /= (batch_size * num_iter)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: epoch {}, loss {:g}".format(time_str, step, avg_loss))
+            save_path = saver.save(sess, model_path)
